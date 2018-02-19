@@ -13,6 +13,8 @@ import (
 	"strings"
 )
 
+var migrationsDir = "migrations"
+
 type SchemaInterface interface {
 	Install()
 	Drop()
@@ -40,13 +42,19 @@ func NewSchema(gorm *gorm.DB, basePath string, log *logrus.Logger) (*Schema, err
 	if basePath == "" {
 		return nil, errors.New("you must provide a base path")
 	}
-
+	if !writableDir(basePath) {
+		return nil, errors.New("base path does not exist or is not writable")
+	}
+	migrationPath := basePath + "/" + migrationsDir
+	err := createDirIfNotExist(migrationPath)
+	if err != nil {
+		return nil, errors.New("failed to create migrations directory at " + migrationPath + " Try creating the directory manually.")
+	}
 	if log == nil {
 		log = getLogger(basePath)
 	}
-
 	return &Schema{
-		migrationsPath: basePath + "/migrations",
+		migrationsPath: migrationPath,
 		installFile:    "install.sql",
 		dropFile:       "drop.sql",
 		log:            log,
