@@ -13,7 +13,11 @@ import (
 	"strings"
 )
 
-var migrationsDir = "migrations"
+var (
+	installFileName = "install"
+	dropFileName    = "drop"
+	migrationsDir   = "migrations"
+)
 
 type SchemaInterface interface {
 	Install()
@@ -53,14 +57,19 @@ func NewSchema(gorm *gorm.DB, basePath string, log *logrus.Logger) (*Schema, err
 	if log == nil {
 		log = getLogger(basePath)
 	}
-	return &Schema{
+	schema := &Schema{
 		migrationsPath: migrationPath,
-		installFile:    "install.sql",
-		dropFile:       "drop.sql",
+		installFile:    installFileName + ".sql",
+		dropFile:       dropFileName + "drop.sql",
 		log:            log,
 		gorm:           gorm,
 		debug:          false,
-	}, nil
+	}
+	err = schema.createInstallFile()
+	if err != nil {
+		return nil, errors.New("failed to create install file: " + err.Error())
+	}
+	return schema, nil
 }
 
 // Returns a logrus logger instance, pointed to the provided path
@@ -269,10 +278,16 @@ func (s Schema) Migrate() ([]string, error) {
 	return migrated, nil
 }
 
-// Create a new migration file.
+// Create a new migration file with a unique prefix.
 func (s *Schema) CreateMigration(name string) (string, error) {
 	date := time.Now().Format("20060102150405")
-	fullPath, err := filepath.Abs(fmt.Sprintf("%s/%s_%s.sql", s.migrationsPath, date, name))
+	fname := date + "_" + name
+	return s.createMigrationFile(fname)
+}
+
+// Create a new migration file.
+func (s *Schema) createMigrationFile(name string) (string, error) {
+	fullPath, err := filepath.Abs(fmt.Sprintf("%s/%s.sql", s.migrationsPath, name))
 	if err != nil {
 		return "", err
 	}
@@ -287,4 +302,11 @@ func (s *Schema) CreateMigration(name string) (string, error) {
 	}
 
 	return fullPath, nil
+}
+
+func (s *Schema) createInstallFile() error {
+	src := getCWD() + "/install.sql"
+	dest := s.migrationsPath + "/" + s.installFile
+	err := copyFileContents(src, dest)
+	return err
 }

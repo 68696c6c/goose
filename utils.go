@@ -5,6 +5,9 @@ import (
 	"strings"
 	"golang.org/x/sys/unix"
 	"os"
+	"io"
+	"path/filepath"
+	"runtime"
 )
 
 func prependErrors(errs []error, err error) []error {
@@ -31,4 +34,35 @@ func createDirIfNotExist(dir string) error {
 		}
 	}
 	return nil
+}
+
+func copyFileContents(src string, dest string) error {
+	in, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer in.Close()
+	out, err := os.Create(dest)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		cerr := out.Close()
+		if err == nil {
+			err = cerr
+		}
+	}()
+	if _, err = io.Copy(out, in); err != nil {
+		return err
+	}
+	err = out.Sync()
+	return err
+}
+
+func getCWD() string {
+	_, b, _, ok := runtime.Caller(0)
+	if !ok {
+		panic("Failed get base path.")
+	}
+	return filepath.Dir(b)
 }
