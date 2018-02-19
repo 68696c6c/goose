@@ -57,19 +57,14 @@ func NewSchema(gorm *gorm.DB, basePath string, log *logrus.Logger) (*Schema, err
 	if log == nil {
 		log = getLogger(basePath)
 	}
-	schema := &Schema{
+	return &Schema{
 		migrationsPath: migrationPath,
 		installFile:    installFileName + ".sql",
-		dropFile:       dropFileName + "drop.sql",
+		dropFile:       dropFileName + ".sql",
 		log:            log,
 		gorm:           gorm,
 		debug:          false,
-	}
-	err = schema.createInstallFile()
-	if err != nil {
-		return nil, errors.New("failed to create install file: " + err.Error())
-	}
-	return schema, nil
+	}, nil
 }
 
 // Returns a logrus logger instance, pointed to the provided path
@@ -149,7 +144,7 @@ func (s Schema) Reset() ([]string, []string, error) {
 // Rebuild the migrations table.
 func (s Schema) Install() error {
 	// Read the migration.
-	filePath := s.getMigrationPath(s.installFile)
+	filePath := fmt.Sprintf("%s/%s", getCWD(), s.installFile)
 	statement, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		s.log.Error(err)
@@ -281,13 +276,7 @@ func (s Schema) Migrate() ([]string, error) {
 // Create a new migration file with a unique prefix.
 func (s *Schema) CreateMigration(name string) (string, error) {
 	date := time.Now().Format("20060102150405")
-	fname := date + "_" + name
-	return s.createMigrationFile(fname)
-}
-
-// Create a new migration file.
-func (s *Schema) createMigrationFile(name string) (string, error) {
-	fullPath, err := filepath.Abs(fmt.Sprintf("%s/%s.sql", s.migrationsPath, name))
+	fullPath, err := filepath.Abs(fmt.Sprintf("%s/%s_%s.sql", s.migrationsPath, date, name))
 	if err != nil {
 		return "", err
 	}
@@ -302,11 +291,4 @@ func (s *Schema) createMigrationFile(name string) (string, error) {
 	}
 
 	return fullPath, nil
-}
-
-func (s *Schema) createInstallFile() error {
-	src := getCWD() + "/install.sql"
-	dest := s.migrationsPath + "/" + s.installFile
-	err := copyFileContents(src, dest)
-	return err
 }
