@@ -239,15 +239,18 @@ func (s *Schema) Migrate() ([]string, error) {
 
 		// Don't run the drop or install migrations.
 		if fileName == s.dropFile || fileName == s.installFile {
+			s.log.Infof("Skipping file: %s", fileName)
 			continue
 		}
 
 		// Only run new migrations.
 		if head.FileName >= fileName {
+			s.log.Infof("Migration has already been run: %s", fileName)
 			continue
 		}
 
 		// Read the migration.
+		s.log.Infof("Running migration: %s", fileName)
 		filePath := s.getMigrationPath(fileName)
 		statement, err := ioutil.ReadFile(filePath)
 		if err != nil {
