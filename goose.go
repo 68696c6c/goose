@@ -87,6 +87,7 @@ func (s *Schema) getMigrationPath(file string) (path string) {
 func (s *Schema) getMigrationHead() (m migration, errs []error) {
 	result := s.gorm.First(&m)
 	if result.RecordNotFound() {
+		s.log.Info("Migrations table is empty")
 		m = migration{}
 	} else if errs = result.GetErrors(); len(errs) > 0 {
 		s.log.Error("Failed to read migrations table.")
@@ -121,6 +122,9 @@ func (s *Schema) exec(statement string) (errs []error) {
 // In debug mode, migrations will be logged, but not executed.
 func (s *Schema) SetDebug(b bool) {
 	s.debug = b
+	if s.debug {
+		s.log.Info("DEBUG MODE ON")
+	}
 }
 
 // Drop all tables, rebuild the migrations table, and run all migrations.
@@ -170,7 +174,7 @@ func (s *Schema) Install() error {
 	return nil
 }
 
-// Drop all tables.
+// Run the drop file.
 func (s *Schema) Drop() ([]string, error) {
 	var dropped []string
 	path := s.getMigrationPath(s.dropFile)
