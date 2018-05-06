@@ -94,6 +94,8 @@ func (s *Schema) getMigrationHead() (m migration, errs []error) {
 		s.log.Errorf("errors: %v\n", errs)
 		errs = prependErrors(errs, errors.New("failed to read migrations table"))
 		return
+	} else {
+		s.log.Infof("Migration head: %s", m.FileName)
 	}
 
 	return
