@@ -191,7 +191,7 @@ func (s Schema) Drop() ([]string, error) {
 		}
 
 		// Execute the migration.
-		errs := s.gorm.Exec(statement).GetErrors()
+		errs := s.exec(statement)
 		if len(errs) > 0 {
 			return dropped, errorsToError(errs)
 		}
