@@ -80,11 +80,11 @@ func getLogger(basePath string) *logrus.Logger {
 }
 
 // Returns the path to the specified migration file.
-func (s Schema) getMigrationPath(file string) (path string) {
+func (s *Schema) getMigrationPath(file string) (path string) {
 	return fmt.Sprintf("%s/%s", s.migrationsPath, file)
 }
 
-func (s Schema) getMigrationHead() (m migration, errs []error) {
+func (s *Schema) getMigrationHead() (m migration, errs []error) {
 	result := s.gorm.First(&m)
 	if result.RecordNotFound() {
 		m = migration{}
@@ -98,7 +98,7 @@ func (s Schema) getMigrationHead() (m migration, errs []error) {
 	return
 }
 
-func (s Schema) setMigrationHead(file string) (errs []error) {
+func (s *Schema) setMigrationHead(file string) (errs []error) {
 	s.log.Infof("Setting migration head to: %v", file)
 	errs = s.exec("TRUNCATE migrations")
 	if len(errs) > 0 {
@@ -108,7 +108,7 @@ func (s Schema) setMigrationHead(file string) (errs []error) {
 	return s.exec(insert)
 }
 
-func (s Schema) exec(statement string) (errs []error) {
+func (s *Schema) exec(statement string) (errs []error) {
 	if s.debug {
 		s.log.Infof("migration debug: %s\n", statement)
 	} else {
@@ -119,12 +119,12 @@ func (s Schema) exec(statement string) (errs []error) {
 
 // Set Schema debug mode.
 // In debug mode, migrations will be logged, but not executed.
-func (s Schema) SetDebug(b bool) {
+func (s *Schema) SetDebug(b bool) {
 	s.debug = b
 }
 
 // Drop all tables, rebuild the migrations table, and run all migrations.
-func (s Schema) Reset() ([]string, []string, error) {
+func (s *Schema) Reset() ([]string, []string, error) {
 	dropped, err := s.Drop()
 	if err != nil {
 		return dropped, nil, err
@@ -142,7 +142,7 @@ func (s Schema) Reset() ([]string, []string, error) {
 }
 
 // Rebuild the migrations table.
-func (s Schema) Install() error {
+func (s *Schema) Install() error {
 	// Read the migration.
 	filePath := fmt.Sprintf("%s/%s", getCWD(), s.installFile)
 	statement, err := ioutil.ReadFile(filePath)
@@ -171,7 +171,7 @@ func (s Schema) Install() error {
 }
 
 // Drop all tables.
-func (s Schema) Drop() ([]string, error) {
+func (s *Schema) Drop() ([]string, error) {
 	var dropped []string
 	path := s.getMigrationPath(s.dropFile)
 	file, err := os.Open(path)
@@ -210,7 +210,7 @@ func (s Schema) Drop() ([]string, error) {
 }
 
 // Run any migrations that haven't been run yet.
-func (s Schema) Migrate() ([]string, error) {
+func (s *Schema) Migrate() ([]string, error) {
 	var migrated []string
 
 	// Load the migration files.
