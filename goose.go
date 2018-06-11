@@ -234,6 +234,7 @@ func (s *Schema) Migrate() ([]string, error) {
 	}
 
 	var last string
+	var runErr error
 	for _, file := range files {
 		fileName := file.Name()
 
@@ -255,7 +256,8 @@ func (s *Schema) Migrate() ([]string, error) {
 		statement, err := ioutil.ReadFile(filePath)
 		if err != nil {
 			s.log.Error(err)
-			return migrated, fmt.Errorf("failed on migration %s: %s", fileName, err.Error())
+			runErr = fmt.Errorf("failed on migration %s: %s", fileName, err.Error())
+			break
 		}
 
 		migrated = append(migrated, fileName)
@@ -265,7 +267,8 @@ func (s *Schema) Migrate() ([]string, error) {
 		if len(errs) > 0 {
 			err = errorsToError(errs)
 			s.log.Error(err)
-			return migrated, fmt.Errorf("failed on migration %s: %s", fileName, err.Error())
+			runErr = fmt.Errorf("failed on migration %s: %s", fileName, err.Error())
+			break
 		}
 
 		// Remember the last migration that was successfully ran.
@@ -277,6 +280,9 @@ func (s *Schema) Migrate() ([]string, error) {
 	if len(errs) > 0 {
 		s.log.Error(errs)
 		return migrated, errorsToError(errs)
+	}
+	if runErr != nil {
+		return migrated, runErr
 	}
 
 	return migrated, nil
