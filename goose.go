@@ -102,6 +102,9 @@ func (s *Schema) getMigrationHead() (m migration, errs []error) {
 }
 
 func (s *Schema) setMigrationHead(file string) (errs []error) {
+	if file == "" {
+		return []error{}
+	}
 	s.log.Infof("Setting migration head to: %v", file)
 	errs = s.exec("TRUNCATE migrations")
 	if len(errs) > 0 {
