@@ -4,13 +4,13 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"github.com/Sirupsen/logrus"
+	"github.com/jinzhu/gorm"
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"time"
-	"github.com/Sirupsen/logrus"
-	"github.com/jinzhu/gorm"
 	"strings"
+	"time"
 )
 
 var (
@@ -248,7 +248,7 @@ func (s *Schema) Migrate() ([]string, error) {
 		}
 
 		// Only run new migrations.
-		if head.FileName >= fileName {
+		if head.FileName != s.installFile && head.FileName >= fileName {
 			s.log.Infof("Migration has already been run: %s", fileName)
 			continue
 		}
