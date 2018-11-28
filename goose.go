@@ -310,3 +310,17 @@ func (s *Schema) CreateMigration(name string) (string, error) {
 
 	return fullPath, nil
 }
+
+func (s *Schema) DropTable(table string) []error {
+	statement := fmt.Sprintf("DROP TABLE IF EXISTS %s", table)
+	return s.exec(statement)
+}
+
+func (s *Schema) RunMigrationFile(fileName string) []error {
+	statement, err := ioutil.ReadFile(s.getMigrationPath(fileName))
+	if err != nil {
+		s.log.Error(err)
+		return []error{err}
+	}
+	return s.exec(string(statement))
+}
