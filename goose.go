@@ -324,3 +324,12 @@ func (s *Schema) RunMigrationFile(fileName string) []error {
 	}
 	return s.exec(string(statement))
 }
+
+func (s *Schema) SetForeignKeyChecks(enabled bool) []error {
+	value := 0
+	if enabled {
+		value = 1
+	}
+	statement := fmt.Sprintf("SET FOREIGN_KEY_CHECKS=%v", value)
+	return s.exec(statement)
+}
