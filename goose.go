@@ -4,13 +4,14 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"github.com/Sirupsen/logrus"
-	"github.com/jinzhu/gorm"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/Sirupsen/logrus"
+	"github.com/jinzhu/gorm"
 )
 
 var (
@@ -20,9 +21,11 @@ var (
 )
 
 type SchemaInterface interface {
-	Install()
-	Drop()
-	Migrate()
+	SetDebug(b bool)
+	Reset() ([]string, []string, error)
+	Install() error
+	Drop() ([]string, error)
+	Migrate() ([]string, error)
 }
 
 // Migration table record.
@@ -41,7 +44,7 @@ type Schema struct {
 	debug          bool
 }
 
-func NewSchema(gorm *gorm.DB, basePath string, log *logrus.Logger) (*Schema, error) {
+func NewSchema(gorm *gorm.DB, basePath string, log *logrus.Logger) (SchemaInterface, error) {
 	basePath = strings.TrimRight(basePath, "/")
 	if basePath == "" {
 		return nil, errors.New("you must provide a base path")
