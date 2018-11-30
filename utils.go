@@ -2,11 +2,11 @@ package goose
 
 import (
 	"errors"
-	"strings"
 	"golang.org/x/sys/unix"
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 )
 
 func prependErrors(errs []error, err error) []error {
@@ -41,4 +41,13 @@ func getCWD() string {
 		panic("Failed get base path.")
 	}
 	return filepath.Dir(b)
+}
+
+func stringInSlice(a string, list []string) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
 }
