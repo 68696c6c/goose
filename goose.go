@@ -26,6 +26,10 @@ type SchemaInterface interface {
 	Install() error
 	Drop() ([]string, error)
 	Migrate() ([]string, error)
+	CreateMigration(name string) (string, error)
+	DropTable(table string) []error
+	RunMigrationFile(fileName string) []error
+	SetForeignKeyChecks(enabled bool) []error
 }
 
 // Migration table record.

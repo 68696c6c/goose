@@ -29,6 +29,22 @@ func (s *mockSchema) Migrate() (m []string, err error) {
 	return
 }
 
+func (s *mockSchema) CreateMigration(name string) (path string, err error) {
+	return
+}
+
+func (s *mockSchema) DropTable(table string) (err []error) {
+	return
+}
+
+func (s *mockSchema) RunMigrationFile(fileName string) (err []error) {
+	return
+}
+
+func (s *mockSchema) SetForeignKeyChecks(enabled bool) (err []error) {
+	return
+}
+
 func newMockSchema() SchemaInterface {
 	return &mockSchema{}
 }
