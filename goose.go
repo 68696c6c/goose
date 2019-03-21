@@ -167,16 +167,8 @@ func (s *Schema) Install() error {
 		return err
 	}
 
-	// Drop the migrations table if it exists.
-	errs := s.exec("DROP TABLE IF EXISTS migrations")
-	if len(errs) > 0 {
-		err := errorsToError(errs)
-		s.log.Error(err)
-		return err
-	}
-
 	// Execute the migration.
-	errs = s.exec(string(statement))
+	errs := s.exec(string(statement))
 	if len(errs) > 0 {
 		err := errorsToError(errs)
 		s.log.Error(err)
