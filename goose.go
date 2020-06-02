@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	"github.com/jinzhu/gorm"
+	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -159,16 +159,16 @@ func (s *Schema) Reset() ([]string, []string, error) {
 
 // Rebuild the migrations table.
 func (s *Schema) Install() error {
-	// Read the migration.
-	filePath := fmt.Sprintf("%s/%s", getCWD(), s.installFile)
-	statement, err := ioutil.ReadFile(filePath)
-	if err != nil {
-		s.log.Error(err)
-		return err
-	}
-
-	// Execute the migration.
-	errs := s.exec(string(statement))
+	errs := s.exec(`
+CREATE TABLE IF NOT EXISTS migrations (
+  id        INT(10) UNSIGNED                        NOT NULL AUTO_INCREMENT,
+  file_name VARCHAR(191) COLLATE utf8mb4_unicode_ci NOT NULL,
+  PRIMARY KEY (id)
+)
+  ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci
+`)
 	if len(errs) > 0 {
 		err := errorsToError(errs)
 		s.log.Error(err)
